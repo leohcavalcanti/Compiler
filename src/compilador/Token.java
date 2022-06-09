@@ -11,14 +11,11 @@ public class Token {
 	public static int TIPO_CARACTER_ESPECIAL = 7;
 	public static int TIPO_PALAVRA_RESERVADA = 8;
 	public static int TIPO_FIM_CODIGO = 99;
-	
-    //adições do grupo
 	public static int TIPO_OPERADOR_INCREMENTA = 9;
 	public static int TIPO_OPERADOR_DECREMENTA = 10;
-	public static int TIPO_ATRIBUICAO = 11;
 
 	private int tipo; // tipo do token
-	private String lexema; // conteúdo do token
+	private String lexema; // conteï¿½do do token
 
 	public Token(String lexema, int tipo) {
 		this.lexema = lexema;
@@ -59,8 +56,6 @@ public class Token {
 			return this.lexema + " - INCREMENTA";
 		case 10:
 			return this.lexema + " - DECREMENTA";
-		case 11:
-			return this.lexema + " - ATRIBUICAO";
 		case 99:
 			return this.lexema + " - FIM_CODIGO";
 		}
