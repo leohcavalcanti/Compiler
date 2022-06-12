@@ -1,4 +1,15 @@
-main(){
-int a = 1;
+main() {
+    int a;
+    int b = 10;
+    while (int a + b) {
+        int c;
+        a + b;
+        if (c + d) {
+            a + 5;
+        } else {
+            a + 7;
+            b = c + d;
+        }
+    }
 }
 $

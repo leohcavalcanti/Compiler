@@ -8,47 +8,51 @@ public class Sintatico {
         this.lexico = lexico;
     }
 
-    public void S() { //S determina estado inicial
+    public void S() { // Início.
         this.token = this.lexico.nextToken();
         if (!token.getLexema().equals("main")) {
-            throw new RuntimeException("Oxe, cadê main?");
+            throw new RuntimeException("Isso não é ideia não boy, cadê o main?");
         }
 
         this.token = this.lexico.nextToken();
         if (!token.getLexema().equals("(")) {
-            throw new RuntimeException("Abre o parêntese do main cabra!");
+            throw new RuntimeException("Tu esqueceu de abrir o parêntese do main.");
         }
 
         this.token = this.lexico.nextToken();
         if (!token.getLexema().equals(")")) {
-            throw new RuntimeException("Fechar o parêntese do main cabra!");
+            throw new RuntimeException("Tu esqueceu de fechar o parêntese do main.");
         }
         this.token = this.lexico.nextToken();
 
         this.B();
+        /* Colocar this.token = this.lexico.nextToken(); aqui caso o código tenha o $
+         * mas o parser ainda esteja no token anterior, causando a exception abaixo. */
         if (this.token.getTipo() == Token.TIPO_FIM_CODIGO) {
-            System.out.println("O Código tá massa! Arretado! Tu botou pra torar!");
+            System.out.println("Tirasse tua braba!");
         } else {
-            throw new RuntimeException("Oxe, eu deu bronca preto do fim do programa.");
+            throw new RuntimeException("Esquecesse de colocar o $ pra finalizar o código visse boy.");
         }
     }
 
     private void B() {
         if (!this.token.getLexema().equals("{")) {
-            throw new RuntimeException("Oxe, tave esperando um \"{\" pertinho de " + this.token.getLexema());
+            throw new RuntimeException("Esquecesse de abrir a primeira chave do código depois do main()");
         }
         this.token = this.lexico.nextToken();
         this.CS();
         if (!this.token.getLexema().equals("}")) {
-            throw new RuntimeException("Oxe, tava esperando um \"}\" pertinho de " + this.token.getLexema());
+            throw new RuntimeException("Esquecesse de fechar a última chave do código antes de " + this.token.getLexema());
         }
         this.token = this.lexico.nextToken();
     }
 
+    /* Método recursivo principal.
+     * Checa todos os tipos e lexemas de tokens e chama seus respectivos métodos. */
     private void CS() {
-        if ((this.token.getTipo() == Token.TIPO_IDENTIFICADOR) ||
-                this.token.getLexema().equals("int") ||
-                this.token.getLexema().equals("float")) {
+        if (this.token.getLexema().equals("int") ||
+                this.token.getLexema().equals("float")
+                || this.token.getLexema().equals("char")) {
             this.C();
             this.CS();
         } else if (this.token.getTipo() == Token.TIPO_OPERADOR_ARITMETICO) {
@@ -60,14 +64,11 @@ public class Sintatico {
         } else if (this.token.getTipo() == Token.TIPO_INTEIRO) {
             this.T();
             this.CS();
-        } else if (this.token.getLexema().equals("{")
-                || this.token.getLexema().equals("}")
-                || this.token.getLexema().equals(";")) {
+        } else if (this.token.getLexema().equals(";")) {
             this.SC();
             this.CS();
-        } else if (this.token.getLexema().equals("(")
-                || this.token.getLexema().equals(")")) {
-            this.CE();
+        } else if (this.token.getTipo() == Token.TIPO_IDENTIFICADOR) {
+            this.E();
             this.CS();
         }
     }
@@ -92,8 +93,9 @@ public class Sintatico {
             this.token = this.lexico.nextToken();
             return;
         }
-        if (!(this.token.getLexema().equals("int") ||
-                this.token.getLexema().equals("float"))) {
+        if (!(this.token.getLexema().equals("int") &&
+                !this.token.getLexema().equals("float"))
+                && !this.token.getLexema().equals("char")) {
             throw new RuntimeException("Tu vacilou na delcaração de variável. "
                     + "Pertinho de: " + this.token.getLexema());
         }
@@ -115,7 +117,7 @@ public class Sintatico {
         if (this.token.getTipo() != Token.TIPO_IDENTIFICADOR) {
             throw new RuntimeException("Erro na atribuição. Pertinho de: " + this.token.getLexema());
         }
-        this.token = this.lexico.nextToken();
+//        this.token = this.lexico.nextToken();
         if (this.token.getTipo() == Token.TIPO_OPERADOR_RELACIONAL) {
             this.token = this.lexico.nextToken();
             return;
@@ -149,20 +151,10 @@ public class Sintatico {
         if (this.token.getTipo() == Token.TIPO_OPERADOR_ARITMETICO) {
             this.El();
         }
-    }
-
-    private void CE() {
-        this.token = this.lexico.nextToken();
-        if (this.token.getLexema().equals("(")) {
-            this.token = this.lexico.nextToken();
-            this.CS();
-            this.token = this.lexico.nextToken();
-            if (!this.token.getLexema().equals(")")) {
-                throw new RuntimeException("AA");
-            } else {
-                this.token = this.lexico.nextToken();
-            }
+        if (this.token.getTipo() == Token.TIPO_OPERADOR_ATRIBUICAO) {
+            this.AV();
         }
+//        this.SC();
     }
 
     private void El() {
@@ -171,6 +163,37 @@ public class Sintatico {
             this.T();
             this.El();
         } else {
+        }
+    }
+
+    private void AV() {
+        if (this.token.getTipo() == Token.TIPO_OPERADOR_ATRIBUICAO) {
+
+            /* Pega próximo token e checa se não é identificador ou número.
+            * Não sendo nenhum dos esperados, lança exceção. */
+            this.token = this.lexico.nextToken();
+            if (this.token.getTipo() != Token.TIPO_IDENTIFICADOR
+                    && this.token.getTipo() != Token.TIPO_INTEIRO
+                    && this.token.getTipo() != Token.TIPO_REAL) {
+                throw new RuntimeException("Erro na atribuição de variável. Era pra ter colocado" +
+                        " um identificador ou número perto de " + this.token.getLexema());
+            }
+
+            /* Pega próximo token e checa se é operador aritmetico ou
+            * identificador ou número ou ;. Não sendo nenhum dos esperados,
+            * lança exceção. */
+            this.token = this.lexico.nextToken();
+            if (this.token.getTipo() == Token.TIPO_OPERADOR_ARITMETICO
+            || this.token.getTipo() == Token.TIPO_IDENTIFICADOR
+            || this.token.getTipo() == Token.TIPO_INTEIRO
+            || this.token.getTipo() == Token.TIPO_REAL
+            || this.token.getLexema().equals(";")) {
+                this.token = this.lexico.nextToken();
+            } else {
+                throw new RuntimeException("Erro na atribuição de variável. Era pra ter colocado" +
+                        " um operador aritmetico (+,-,*,/) ou identificador ou número" +
+                        " ou finalizar a atribuição com ; perto de " + this.token.getLexema());
+            }
         }
     }
 
@@ -196,23 +219,119 @@ public class Sintatico {
     }
 
     private void SC() {
-        if (this.token.getTipo() == Token.TIPO_CARACTER_ESPECIAL) {
+        if (this.token.getLexema().equals(";")) {
             this.token = this.lexico.nextToken();
         } else {
-            throw new RuntimeException("AAAAA");
+            throw new RuntimeException("Tu esqueceu do ; perto de " + this.token.getLexema());
         }
     }
 
     private void PL() {
         if (this.token.getLexema().equals("if")
                 || this.token.getLexema().equals("while")) {
-            this.CE();
+            this.token = this.lexico.nextToken();
+            this.AP();
+            this.FP();
+            this.AC();
+            this.FC();
+        } else if (this.token.getLexema().equals("else")) {
+            this.token = this.lexico.nextToken();
+            if (this.token.getLexema().equals("if")) {
+                this.lexico.nextToken();
+                this.AP();
+                this.FP();
+                this.AC();
+                this.FC();
+            } else if (this.token.getLexema().equals("{")) {
+                this.AC();
+                this.FC();
+            }
         } else if (this.token.getTipo() == Token.TIPO_PALAVRA_RESERVADA) {
             this.token = this.lexico.nextToken();
         } else {
-            throw new RuntimeException("Oxe, era para ser uma palavra reservada "
-                    + "(main | if | else | int | float | char | do | for | while) pertinho de " +
+            throw new RuntimeException("Era pra tu ter colocado uma palavra reservada "
+                    + "(main | if | else | int | float | char | do | for | while) perto de " +
                     this.token.getLexema());
+        }
+    }
+
+    private void AP() {
+        if (this.token.getLexema().equals("(")) {
+            this.token = this.lexico.nextToken();
+
+            /* Checa se lexema é int | float | char e se o próximo é identificador
+             * (declaração de variável dentro de escopo do if ou while). */
+            if (this.token.getLexema().equals("int")
+                    || this.token.getLexema().equals("float")
+                    || this.token.getLexema().equals("char")) {
+                this.token = this.lexico.nextToken();
+                if (this.token.getTipo() != Token.TIPO_IDENTIFICADOR) {
+                    throw new RuntimeException("Errasse na declaração de variável" +
+                            " dentro do escopo do if ou while. Era pra ter colocado" +
+                            " um identificador perto de " + this.token.getLexema());
+                } else {
+                    this.token = this.lexico.nextToken();
+                }
+            }
+
+            /* Checa se o token é do tipo inteiro ou float e chama o próximo token. */
+            else if (this.token.getTipo() == Token.TIPO_INTEIRO
+                    || this.token.getTipo() == Token.TIPO_REAL
+                    || this.token.getTipo() == Token.TIPO_IDENTIFICADOR) {
+                this.token = this.lexico.nextToken();
+            }
+
+            /* Checa se o token é do tipo operador aritmetico, atribuição ou relacional. */
+            if (this.token.getTipo() == Token.TIPO_OPERADOR_ARITMETICO
+                    || this.token.getTipo() == Token.TIPO_OPERADOR_ATRIBUICAO
+                    || this.token.getTipo() == Token.TIPO_OPERADOR_RELACIONAL) {
+                this.token = this.lexico.nextToken();
+            } else {
+                throw new RuntimeException("Errasse na operação de variável" +
+                        " dentro do escopo do if ou while.\nEra pra ter colocado um" +
+                        " operador aritmético (+,-,*,/), operador de atribuição (=) ou" +
+                        " operador relacional (<, <=, >, >=, !=, ==) perto de " + this.token.getLexema());
+            }
+
+            if (this.token.getTipo() == Token.TIPO_IDENTIFICADOR
+                    || this.token.getTipo() == Token.TIPO_INTEIRO
+                    || this.token.getTipo() == Token.TIPO_REAL) {
+                this.token = this.lexico.nextToken();
+            } else {
+                throw new RuntimeException("Errasse na operação de variável" +
+                        " dentro do escopo do if ou while.\nEra pra ter colocado um" +
+                        " identificador ou número perto de " + this.token.getLexema());
+            }
+
+        } else {
+            throw new RuntimeException("Ei boy, tu não abriu o parêntese do teu if/while/else if" +
+                    " perto de " + this.token.getLexema() + " visse.");
+        }
+    }
+
+    private void FP() {
+        if (this.token.getLexema().equals(")")) {
+            this.token = this.lexico.nextToken();
+        } else {
+            throw new RuntimeException("Aguarde o processo, esqueceu de fechar o parêntese do " +
+                    "if ou while antes de " + this.token.getLexema());
+        }
+    }
+
+    private void AC() {
+        if (this.token.getLexema().equals("{")) {
+            this.token = this.lexico.nextToken();
+            this.CS();
+        } else {
+            throw new RuntimeException("Esqueceu de abrir chaves perto de " + this.token.getLexema());
+        }
+    }
+
+    private void FC() {
+        if (this.token.getLexema().equals("}")) {
+            this.token = this.lexico.nextToken();
+        } else {
+            throw new RuntimeException("Esqueceu de fechar chaves perto de " + this.token.getLexema());
         }
     }
 
