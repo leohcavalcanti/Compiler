@@ -1,4 +1,10 @@
 main() {
-    
+    int a;
+    foat b;
+    char c;
+    int d;
+    if(a != d){
+
+    }
 }
 $
